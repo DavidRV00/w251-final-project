@@ -1,0 +1,25 @@
+---
+title: "w241 Final Project"
+output: pdf_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{r}
+library(dplyr)
+```
+
+```{r}
+all <- read.csv("resp_improve.csv", header = TRUE, sep = ",")
+
+filtered <- filter(all, wfh != "")
+
+df <- data.frame(
+  wfh = filtered$wfh,
+  duration_focused_pre = filtered$duration_focused_pre,
+  duration_focused_post = filtered$duration_focused_post
+)
+df
+```
