@@ -12,17 +12,52 @@ library(dplyr)
 ```
 
 ```{r}
-# Load the data
 all <- read.csv("resp_improve.csv", header = TRUE, sep = ",")
+tail(all)
+```
 
-# Filter out participants we can't use
-filtered <- filter(all, wfh != "", wfh != "not_working")
+```{r}
+filtered <- filter(
+  all,
+  wfh != "",
+  wfh != "not_working",
+  duration_focus_pre != "",
+  duration_focus_post_2 != ""
+)
+nrow(all)
+nrow(filtered)
+```
 
-# Isolate the relevant information
+```{r}
 df <- data.frame(
   wfh = filtered$wfh,
   duration_focus_pre = filtered$duration_focus_pre,
   duration_focus_post = filtered$duration_focus_post_2
 )
 df
+```
+
+```{r}
+control <- filter(df, wfh != "yes_post")
+nrow(control)
+
+treat <- filter(df, wfh == "yes_post")
+nrow(treat)
+```
+
+```{r}
+control
+treat
+```
+
+```{r}
+summary(control)
+barplot(table(control$duration_focus_pre))
+barplot(table(control$duration_focus_post))
+```
+
+```{r}
+summary(treat)
+barplot(table(treat$duration_focus_pre))
+barplot(table(treat$duration_focus_post))
 ```
