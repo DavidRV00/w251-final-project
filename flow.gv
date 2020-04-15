@@ -4,12 +4,12 @@ digraph G {
   participants [label="All participants\nN = 52 people"]
   participants -> {amendments rand_participants}
 
-  amendments [label="Dataset amendments:\n___ (N = _ people)"]
+  amendments [label="Dataset amendments:\nPeople not working (N = 4 people)\nDidn't answer work-from-home question (N = 10 people)"]
 
-  rand_participants [label="Randomized participants\nN = _ people"]
+  rand_participants [label="Randomized participants\nN = 38 people"]
   rand_participants -> {treatment control}
 
-  treatment [label="Treatment group\n(subject to enforced isolation during work)\nN = _ people"]
+  treatment [label="Treatment group\n(subject to enforced isolation during work)\nN = 24 people"]
 
-  control [label="Control group\n(not subject to enforced isolation during work)\nN = _ people"]
+  control [label="Control group\n(not subject to enforced isolation during work)\nN = 14 people"]
 }
