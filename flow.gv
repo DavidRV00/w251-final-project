@@ -1,0 +1,15 @@
+digraph G {
+  node [shape=rectangle style=rounded];
+
+  participants [label="All participants\nN = 52 people"]
+  participants -> {amendments rand_participants}
+
+  amendments [label="Dataset amendments:\n___ (N = _ people)"]
+
+  rand_participants [label="Randomized participants\nN = _ people"]
+  rand_participants -> {treatment control}
+
+  treatment [label="Treatment group\n(subject to enforced isolation during work)\nN = _ people"]
+
+  control [label="Control group\n(not subject to enforced isolation during work)\nN = _ people"]
+}
