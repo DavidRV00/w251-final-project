@@ -12,9 +12,12 @@ library(dplyr)
 ```
 
 ```{r}
-all <- read.csv("resp_improve.csv", header = TRUE, sep = ",")
+all <- read.csv("resp_improve.csv", header = TRUE, sep = ",", stringsAsFactors = FALSE)
 tail(all)
 ```
+
+
+
 
 ```{r}
 filtered <- filter(
@@ -78,4 +81,46 @@ dt[,t.test(age~treatment)] # no significant difference in age by treatment
 dt[,fisher.test(treatment,sex)] # no significant association with sex
 dt[,fisher.test(treatment,gender)] # no significant association with gender
 dt[,fisher.test(treatment,race)] #no significant association with race
+```
+```{r}
+#need to convert outcomes to numeric for analyses
+all$new_duration_focus_pre<-plyr::mapvalues(all$duration_focus_pre, from = c("25% or less","Between 25% and 50%", "50% to 75%", "More than 75% of the time"), to = c(1,2,3,4)) %>% as.numeric()
+all$new_duration_focus_post_2<-plyr::mapvalues(all$duration_focus_post_2, from = c( "Between 25% and 50%", "50% to 75%", "More than 75% of the time"), to = c(2,3,4)) %>% as.numeric()
+
+
+#new hours of work
+library(lubridate)
+time_pre<-parse_date_time(all$time_start_pre, '%I:%M:%S %p')
+time_post<-parse_date_time(all$time_start_post, '%I:%M:%S %p')
+all$hours_work<-as.numeric(difftime(time_pre, time_post, units="mins"))
+
+
+#attempting imputation by replacing missing with mean substitution
+mice_all<-mice::mice(all, meth="mean")
+new_all <- mice::complete(mice_all)
+
+#new duration of focus
+new_all$duration_focus <- new_all$new_duration_focus_pre - new_all$new_duration_focus_post_2
+new_all$duration_focus
+
+final<-data.table(new_all)
+final[,treatment := 1*(wfh=='yes_post') + 0*(wfh=='no' | wfh=='yes_pre')]
+final[wfh=='not_working',treatment :=NA]
+table(final$wfh, final$treatment)
+
+```
+
+```{r}
+#Analysis!
+#Is there a significant difference in pre-post focus by treatment group?
+final[,wilcox.test(duration_focus~treatment, exact=FALSE)]
+final[,median(duration_focus), by=treatment]
+#There is no significant difference in median pre-post focus by treatment group.
+
+#Is there a significant difference in pre-post hours of work by treatment group?
+final[,wilcox.test(hours_work~treatment, exact=FALSE)]
+final[,median(hours_work), by=treatment]
+#There is no significant difference in median pre-post hours of work by treatment group.
+
+
 ```
