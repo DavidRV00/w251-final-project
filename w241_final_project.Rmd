@@ -61,3 +61,21 @@ summary(treat)
 barplot(table(treat$duration_focus_pre))
 barplot(table(treat$duration_focus_post))
 ```
+
+```{r}
+library(data.table)
+dt<-data.table(filtered)
+dt[,treatment := 1*(wfh=='yes_post') + 0*(wfh=='no' | wfh=='yes_pre')]
+dt[dt$wfh=='not_working',treatment :=NA]
+table(dt$treatment,dt$wfh)
+dt[,table(wfh)]
+
+#covariate balance check
+dt[,fisher.test(treatment,job_category)] #no significant association with job_category
+dt$year<-as.numeric(levels(dt$year_of_birth))[dt$year_of_birth]
+dt[,age := 2020-year]
+dt[,t.test(age~treatment)] # no significant difference in age by treatment
+dt[,fisher.test(treatment,sex)] # no significant association with sex
+dt[,fisher.test(treatment,gender)] # no significant association with gender
+dt[,fisher.test(treatment,race)] #no significant association with race
+```
