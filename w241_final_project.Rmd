@@ -87,6 +87,15 @@ dt[,fisher.test(treatment,race)] #no significant association with race
 all$new_duration_focus_pre<-plyr::mapvalues(all$duration_focus_pre, from = c("25% or less","Between 25% and 50%", "50% to 75%", "More than 75% of the time"), to = c(1,2,3,4)) %>% as.numeric()
 all$new_duration_focus_post_2<-plyr::mapvalues(all$duration_focus_post_2, from = c( "Between 25% and 50%", "50% to 75%", "More than 75% of the time"), to = c(2,3,4)) %>% as.numeric()
 
+how_often<-function(x) {plyr::mapvalues(x, from = c( "None of the time (0%)", "Some of the time (25%)", "Half the time (50%)", "Most of the time (75%)","All of the time (100%)"), to = c(0,1,2,3,4), warn_missing = FALSE) %>% as.numeric()}
+
+all$how_often_anxiety<-how_often(all$how_often_anxiety)
+all$how_often_coworker_problem<-how_often(all$how_often_coworker_problem)
+all$how_often_low_energy<-how_often(all$how_often_low_energy)
+all$how_often_poor_concentration<-how_often(all$how_often_poor_concentration)
+all$how_often_less_work<-how_often(all$how_often_less_work)
+all$how_often_poor_quality<-how_often(all$how_often_poor_quality)
+all$how_often_more_mistakes<-how_often(all$how_often_more_mistakes)
 
 #new hours of work
 library(lubridate)
@@ -103,10 +112,13 @@ new_all <- mice::complete(mice_all)
 new_all$duration_focus <- new_all$new_duration_focus_pre - new_all$new_duration_focus_post_2
 new_all$duration_focus
 
+
 final<-data.table(new_all)
 final[,treatment := 1*(wfh=='yes_post') + 0*(wfh=='no' | wfh=='yes_pre')]
 final[wfh=='not_working',treatment :=NA]
 table(final$wfh, final$treatment)
+#work impairment
+final$impairment <-final$how_often_low_energy+final$how_often_poor_concentration+final$how_often_anxiety+final$how_often_less_work+final$how_often_poor_quality+final$how_often_more_mistakes+final$how_often_coworker_problem
 
 ```
 
@@ -118,9 +130,16 @@ final[,median(duration_focus), by=treatment]
 #There is no significant difference in median pre-post focus by treatment group.
 
 #Is there a significant difference in pre-post hours of work by treatment group?
-final[,wilcox.test(hours_work~treatment, exact=FALSE)]
-final[,median(hours_work), by=treatment]
-#There is no significant difference in median pre-post hours of work by treatment group.
+#final[,wilcox.test(hours_work~treatment, exact=FALSE)] #don't use this
+final[,mean(hours_work), by=treatment]
+model<-final[,lm(hours_work~treatment)]
+coeftest(model, vcov = vcovHC(model, type = "HC0"))
 
+#There is no significant difference in mean pre-post hours of work by treatment group.
+
+#Is there a significant difference in impairment between treatment and control (post-test only)?
+model<-final[,lm(impairment~treatment)]
+coeftest(model, vcov = vcovHC(model, type = "HC0"))
+final[,mean(impairment), by=treatment]
 
 ```
